@@ -1,13 +1,10 @@
 ---
-title: Vits Uma Genshin Honkai
-emoji: 🦀
-colorFrom: blue
-colorTo: indigo
-sdk: gradio
-sdk_version: 3.16.2
-app_file: app.py
-pinned: false
 license: apache-2.0
+title: ' vits-uma-genshin-honkai'
+sdk: gradio
+sdk_version: 3.7
+emoji: 🐨
+colorTo: yellow
+pinned: false
+app_file: app.py
 ---
-
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
