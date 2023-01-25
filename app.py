@@ -62,6 +62,28 @@ def change_lang(language):
     else:
         return 0.6, 0.668, 1.1
 
+download_audio_js = """
+() =>{{
+    let root = document.querySelector("body > gradio-app");
+    if (root.shadowRoot != null)
+        root = root.shadowRoot;
+    let audio = root.querySelector("#tts-audio").querySelector("audio");
+    let text = root.querySelector("#input-text").querySelector("textarea");
+    if (audio == undefined)
+        return;
+    text = text.value;
+    if (text == undefined)
+        text = Math.floor(Math.random()*100000000);
+    audio = audio.src;
+    let oA = document.createElement("a");
+    oA.download = text.substr(0, 20)+'.wav';
+    oA.href = audio;
+    document.body.appendChild(oA);
+    oA.click();
+    oA.remove();
+}}
+"""
+
 if __name__ == '__main__':
     with gr.Blocks() as app:
         gr.Markdown(
@@ -75,7 +97,7 @@ if __name__ == '__main__':
             with gr.TabItem("vits"):
                 with gr.Row():
                     with gr.Column():
-                        input_text = gr.Textbox(label="Text (100 words limitation)", lines=5, value="今天晚上吃啥好呢。")
+                        input_text = gr.Textbox(label="Text (100 words limitation)", lines=5, value="今天晚上吃啥好呢。", elem_id=f"input-text")
                         lang = gr.Dropdown(label="Language", choices=["中文", "日语", "中日混合（中文用[ZH][ZH]包裹起来，日文用[JA][JA]包裹起来）"],
                                     type="index", value="中文")
                         btn = gr.Button(value="Submit")
@@ -89,9 +111,11 @@ if __name__ == '__main__':
                             ls = gr.Slider(label="length_scale(控制整体语速)", minimum=0.1, maximum=2.0, step=0.1, value=1.2, interactive=True)
                     with gr.Column():
                         o1 = gr.Textbox(label="Output Message")
-                        o2 = gr.Audio(label="Output Audio")
+                        o2 = gr.Audio(label="Output Audio", elem_id=f"tts-audio")
                         o3 = gr.Textbox(label="Extra Info")
+                        download = gr.Button("Download Audio")
                     btn.click(vits, inputs=[input_text, lang, sid, ns, nsw, ls], outputs=[o1, o2, o3])
+                    download.click(None, [], [], _js=download_audio_js.format())
                     btn2.click(search_speaker, inputs=[search], outputs=[sid])
                     lang.change(change_lang, inputs=[lang], outputs=[ns, nsw, ls])
             with gr.TabItem("可用人物一览"):
