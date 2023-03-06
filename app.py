@@ -88,6 +88,7 @@ if __name__ == '__main__':
     with gr.Blocks() as app:
         gr.Markdown(
             "# <center> VITS语音在线合成demo\n"
+            "# <center> 严禁将模型用于任何商业项目，否则后果自负\n"
             "<div align='center'>主要有赛马娘，原神中文，原神日语，崩坏3的音色</div>"
             '<div align="center"><a><font color="#dd0000">结果有随机性，语调可能很奇怪，可多次生成取最佳效果</font></a></div>'
             '<div align="center"><a><font color="#dd0000">标点符号会影响生成的结果</font></a></div>'
