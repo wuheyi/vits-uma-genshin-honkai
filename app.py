@@ -13,17 +13,6 @@ import logging
 logging.getLogger('numba').setLevel(logging.WARNING)
 limitation = os.getenv("SYSTEM") == "spaces"  # limit text and audio length in huggingface spaces
 
-hps_ms = utils.get_hparams_from_file(r'./model/config.json')
-net_g_ms = SynthesizerTrn(
-    len(hps_ms.symbols),
-    hps_ms.data.filter_length // 2 + 1,
-    hps_ms.train.segment_size // hps_ms.data.hop_length,
-    n_speakers=hps_ms.data.n_speakers,
-    **hps_ms.model)
-_ = net_g_ms.eval().to(device)
-speakers = hps_ms.speakers
-model, optimizer, learning_rate, epochs = utils.load_checkpoint(r'./model/G_953000.pth', net_g_ms, None)
-
 def get_text(text, hps):
     text_norm, clean_text = text_to_sequence(text, hps.symbols, hps.data.text_cleaners)
     if hps.data.add_blank:
@@ -98,6 +87,18 @@ if __name__ == '__main__':
     parser.add_argument("--colab", action="store_true", default=False, help="share gradio app")
     args = parser.parse_args()
     device = torch.device(args.device)
+    
+    hps_ms = utils.get_hparams_from_file(r'./model/config.json')
+    net_g_ms = SynthesizerTrn(
+        len(hps_ms.symbols),
+        hps_ms.data.filter_length // 2 + 1,
+        hps_ms.train.segment_size // hps_ms.data.hop_length,
+        n_speakers=hps_ms.data.n_speakers,
+        **hps_ms.model)
+    _ = net_g_ms.eval().to(device)
+    speakers = hps_ms.speakers
+    model, optimizer, learning_rate, epochs = utils.load_checkpoint(r'./model/G_953000.pth', net_g_ms, None)
+    
     with gr.Blocks() as app:
         gr.Markdown(
             "# <center> VITS语音在线合成demo\n"
