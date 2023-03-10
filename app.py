@@ -40,7 +40,7 @@ def vits(text, language, speaker_id, noise_scale, noise_scale_w, length_scale):
         x_tst_lengths = LongTensor([stn_tst.size(0)]).to(device)
         speaker_id = LongTensor([speaker_id]).to(device)
         audio = net_g_ms.infer(x_tst, x_tst_lengths, sid=speaker_id, noise_scale=noise_scale, noise_scale_w=noise_scale_w,
-                               length_scale=length_scale)[0][0, 0].data.float().numpy()
+                               length_scale=length_scale)[0][0, 0].data.cpu().float().numpy()
 
     return "生成成功!", (22050, audio), f"生成耗时 {round(time.perf_counter()-start, 2)} s"
 
