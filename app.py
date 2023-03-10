@@ -2,6 +2,7 @@
 import time
 import gradio as gr
 import utils
+import argparse
 import commons
 from models import SynthesizerTrn
 from text import text_to_sequence
@@ -14,7 +15,7 @@ net_g_ms = SynthesizerTrn(
     hps_ms.train.segment_size // hps_ms.data.hop_length,
     n_speakers=hps_ms.data.n_speakers,
     **hps_ms.model)
-_ = net_g_ms.eval()
+_ = net_g_ms.eval().to(device)
 speakers = hps_ms.speakers
 model, optimizer, learning_rate, epochs = utils.load_checkpoint(r'./model/G_953000.pth', net_g_ms, None)
 
@@ -40,9 +41,9 @@ def vits(text, language, speaker_id, noise_scale, noise_scale_w, length_scale):
         text = f"{text}"
     stn_tst, clean_text = get_text(text, hps_ms)
     with no_grad():
-        x_tst = stn_tst.unsqueeze(0)
-        x_tst_lengths = LongTensor([stn_tst.size(0)])
-        speaker_id = LongTensor([speaker_id])
+        x_tst = stn_tst.unsqueeze(0).to(device)
+        x_tst_lengths = LongTensor([stn_tst.size(0)]).to(device)
+        speaker_id = LongTensor([speaker_id]).to(device)
         audio = net_g_ms.infer(x_tst, x_tst_lengths, sid=speaker_id, noise_scale=noise_scale, noise_scale_w=noise_scale_w,
                                length_scale=length_scale)[0][0, 0].data.float().numpy()
 
@@ -85,6 +86,12 @@ download_audio_js = """
 """
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--device', type=str, default='cpu')
+    parser.add_argument('--api', action="store_true", default=False)
+    parser.add_argument("--share", action="store_true", default=False, help="share gradio app")
+    args = parser.parse_args()
+    device = torch.device(args.device)
     with gr.Blocks() as app:
         gr.Markdown(
             "# <center> VITS语音在线合成demo\n"
@@ -121,4 +128,4 @@ if __name__ == '__main__':
                     lang.change(change_lang, inputs=[lang], outputs=[ns, nsw, ls])
             with gr.TabItem("可用人物一览"):
                 gr.Radio(label="Speaker", choices=speakers, interactive=False, type="index")
-    app.queue(concurrency_count=1).launch()
+    app.queue(concurrency_count=1, api_open=args.api).launch(share=args.share)
