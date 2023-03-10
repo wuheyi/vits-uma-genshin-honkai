@@ -136,4 +136,6 @@ if __name__ == '__main__':
                     lang.change(change_lang, inputs=[lang], outputs=[ns, nsw, ls])
             with gr.TabItem("可用人物一览"):
                 gr.Radio(label="Speaker", choices=speakers, interactive=False, type="index")
+    if args.colab:
+        webbrowser.open("http://127.0.0.1:7860")
     app.queue(concurrency_count=1, api_open=args.api).launch(share=args.share)
