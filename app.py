@@ -6,7 +6,12 @@ import argparse
 import commons
 from models import SynthesizerTrn
 from text import text_to_sequence
+import torch
 from torch import no_grad, LongTensor
+import webbrowser
+import logging
+logging.getLogger('numba').setLevel(logging.WARNING)
+limitation = os.getenv("SYSTEM") == "spaces"  # limit text and audio length in huggingface spaces
 
 hps_ms = utils.get_hparams_from_file(r'./model/config.json')
 net_g_ms = SynthesizerTrn(
@@ -31,7 +36,7 @@ def vits(text, language, speaker_id, noise_scale, noise_scale_w, length_scale):
     if not len(text):
         return "输入文本不能为空！", None, None
     text = text.replace('\n', ' ').replace('\r', '').replace(" ", "")
-    if len(text) > 100:
+    if len(text) > 100 and limitation:
         return f"输入文字过长！{len(text)}>100", None, None
     if language == 0:
         text = f"[ZH]{text}[ZH]"
@@ -90,6 +95,7 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default='cpu')
     parser.add_argument('--api', action="store_true", default=False)
     parser.add_argument("--share", action="store_true", default=False, help="share gradio app")
+    parser.add_argument("--colab", action="store_true", default=False, help="share gradio app")
     args = parser.parse_args()
     device = torch.device(args.device)
     with gr.Blocks() as app:
@@ -105,7 +111,7 @@ if __name__ == '__main__':
             with gr.TabItem("vits"):
                 with gr.Row():
                     with gr.Column():
-                        input_text = gr.Textbox(label="Text (100 words limitation)", lines=5, value="今天晚上吃啥好呢。", elem_id=f"input-text")
+                        input_text = gr.Textbox(label="Text (100 words limitation) " if limitation else "Text", lines=5, value="今天晚上吃啥好呢。", elem_id=f"input-text")
                         lang = gr.Dropdown(label="Language", choices=["中文", "日语", "中日混合（中文用[ZH][ZH]包裹起来，日文用[JA][JA]包裹起来）"],
                                     type="index", value="中文")
                         btn = gr.Button(value="Submit")
