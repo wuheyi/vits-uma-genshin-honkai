@@ -11,8 +11,17 @@ import torch
 from torch import no_grad, LongTensor
 import webbrowser
 import logging
+import gradio.processing_utils as gr_processing_utils
 logging.getLogger('numba').setLevel(logging.WARNING)
 limitation = os.getenv("SYSTEM") == "spaces"  # limit text and audio length in huggingface spaces
+
+audio_postprocess_ori = gr.Audio.postprocess
+def audio_postprocess(self, y):
+    data = audio_postprocess_ori(self, y)
+    if data is None:
+        return None
+    return gr_processing_utils.encode_url_or_file_to_base64(data["name"])
+gr.Audio.postprocess = audio_postprocess
 
 def get_text(text, hps):
     text_norm, clean_text = text_to_sequence(text, hps.symbols, hps.data.text_cleaners)
