@@ -97,7 +97,7 @@ if __name__ == '__main__':
     parser.add_argument("--colab", action="store_true", default=False, help="share gradio app")
     args = parser.parse_args()
     device = torch.device(args.device)
-    
+
     hps_ms = utils.get_hparams_from_file(r'./model/config.json')
     net_g_ms = SynthesizerTrn(
         len(hps_ms.symbols),
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     _ = net_g_ms.eval().to(device)
     speakers = hps_ms.speakers
     model, optimizer, learning_rate, epochs = utils.load_checkpoint(r'./model/G_953000.pth', net_g_ms, None)
-    
+
     with gr.Blocks() as app:
         gr.Markdown(
             "# <center> VITS语音在线合成demo\n"
@@ -139,7 +139,7 @@ if __name__ == '__main__':
                         o2 = gr.Audio(label="Output Audio", elem_id=f"tts-audio")
                         o3 = gr.Textbox(label="Extra Info")
                         download = gr.Button("Download Audio")
-                    btn.click(vits, inputs=[input_text, lang, sid, ns, nsw, ls], outputs=[o1, o2, o3])
+                    btn.click(vits, inputs=[input_text, lang, sid, ns, nsw, ls], outputs=[o1, o2, o3], api_name="GetSpeech")
                     download.click(None, [], [], _js=download_audio_js.format())
                     btn2.click(search_speaker, inputs=[search], outputs=[sid])
                     lang.change(change_lang, inputs=[lang], outputs=[ns, nsw, ls])
